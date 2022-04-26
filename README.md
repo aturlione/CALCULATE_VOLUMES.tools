@@ -16,26 +16,40 @@ Python-Flask Api to ----- provide standard outputs based on .nc .json .geojson a
 
 ---
 ## :zap: Main methods
-Each typology of simulation is triggered by an specific method:
 
-* TESEO-OIL 2D Simulations:
 ```python
-# title
-method()
+# class subcatchment
+sub_catchment(catchment_id)
 
+# Obtain data from API
+obtain_data(self,section,param=None)
 
+# Apply hydrobid to sub-catchments
+hydrobid(self,catchment_id,product_id,start_date,end_date)
+
+# Find upper-subcatchments and calculates outflowsfor a given time period
+calculate_OutFlow(self,catchment_id,product_id,start_date,end_date,plot=False)
+
+# caculate total volume using results from "calculate_Outflows"
+calculate_total_volumes(self,results)
+
+# Calculate water demands
+obtain_water_demands(self,param,demand_kind)
+
+# Calculate resultan volume for a sub-cacthment (entering water volume - demanded water volume)
+calculate_resultant_volume(self,catchment_id,product_id,start_date,end_date, custom_demands=None)
 ```
 
 ## :package: Package structure
 Reminder--> *command: `tree -AC -I __pycache__`*
 ````
-TESEO.Apiprocess
+CALCULATE_VOLUMES.Apiprocess
 |
-├── DEPLOY_REQUIREMENTS.md
+├── DEPLOY_REQUIREMENTS.md--------------------
 ├── LICENSE
 ├── README.md
 ├── environment.yml
-├── pyproject.toml
+├── pyproject.toml --------------------
 ├── python_module
 │   ├── __init__.py
 │   ├── api.py
@@ -105,7 +119,7 @@ Check [DEPLOY_REQUIREMENTS.md](https://github.com/IHCantabria/SICMA.Process.Oper
 
 ---
 ## :incoming_envelope: Contact us
-:snake: For code-development issues contact :man_technologist: [Anabela Turlione](email)
+:snake: For code-development issues contact :man_technologist: [Anabela Turlione](anabela-romina.turlione@alumnos.unican.es)
 
 ## :copyright: Credits
-Developed by :man_technologist: [Anabela Turlione](email).
+Developed by :man_technologist: [Anabela Turlione](anabela-romina.turlione@alumnos.unican.es).
