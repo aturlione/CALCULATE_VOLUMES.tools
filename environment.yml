@@ -1,0 +1,37 @@
+name: python-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pandas
+  - dask
+  - black
+  - bottleneck
+  - rope
+  - ipykernel
+  - geojson
+  - bs4
+  - hypothesis
+  - pre-commit
+  - requests
+  - pandas
+  - numexpr
+  - scipy
+  - pytest
+  - pylint
+  - python=3.9
+  - netcdf4
+  - matplotlib
+  - xarray
+  - lxml
+  - python-dotenv
+  - flask
+  - flit
+  - pytest-cov
+  - pip
+  - pre-commit
+  - coverage-badge
+  
+  # GITHUB ISSUE - https://github.com/conda/conda/issues/6805
+  # - pip:
+  #   - "git+https://github.com/IHCantabria/datahub.client@v0.8.6#egg=datahubClient --no-deps"
