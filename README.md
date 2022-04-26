@@ -1,6 +1,6 @@
 
-# TESEO.Apiprocess
-Python-Flask Api to trigger TESEO simulations. This development preprocess, execute and postprocess TESEO oil spill simulations to provide standard outputs based on .nc .json .geojson and .csv formats required by web-clients or users throgh web-request.
+# CALCULATE_VOLUMES.Apiprocess
+Python-Flask Api to ----- provide standard outputs based on .nc .json .geojson and .csv formats required by web-clients or users throgh web-request.
 
 [!] CHANGE BADAGE REPO-LINKS
 
@@ -20,26 +20,10 @@ Each typology of simulation is triggered by an specific method:
 
 * TESEO-OIL 2D Simulations:
 ```python
-# 2D Forward simulation single-release
-TESEO_OIL_2D_forward_single_release(arg_1=1, arg_2='aaa')
+# title
+method()
 
-# 2D Forward simulation continuous-release
-TESEO_OIL_2D_forward_continuous_release(arg_1=2, arg_2='bbb')
 
-# 2D Backwards simulation single-release
-TESEO_OIL_2D_backwards_single_release(arg_1=1, arg_2='aaa')
-
-# 2D Backwards simulation continuous-release
-TESEO_OIL_2D_backwards_continuous_release(arg_1=2, arg_2='bbb')
-```
-
-* TESEO-OIL quasi-3D Simulations:
-```python
-# quasi-3D Forward simulation single-release
-TESEO_OIL_quasi3D_forward_single_release(arg_1=1, arg_2='aaa')
-
-# quasi-3D Forward simulation continuous-release
-TESEO_OIL_quasi3D_forward_continuous_release(arg_1=1, arg_2='aaa')
 ```
 
 ## :package: Package structure
@@ -121,7 +105,7 @@ Check [DEPLOY_REQUIREMENTS.md](https://github.com/IHCantabria/SICMA.Process.Oper
 
 ---
 ## :incoming_envelope: Contact us
-:snake: For code-development issues contact :man_technologist: [German Aragon](https://ihcantabria.com/en/directorio-personal/investigador/german-aragon/) @ :office: [IHCantabria](https://github.com/IHCantabria)
+:snake: For code-development issues contact :man_technologist: [Anabela Turlione](email)
 
 ## :copyright: Credits
-Developed by :man_technologist: [German Aragon](https://ihcantabria.com/en/directorio-personal/investigador/german-aragon/) @ :office: [IHCantabria](https://github.com/IHCantabria).
+Developed by :man_technologist: [Anabela Turlione](email).
