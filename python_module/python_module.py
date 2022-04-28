@@ -42,7 +42,7 @@ class sub_catchment:
     
     def hydrobid(self,catchment_id,product_id,start_date,end_date):
         print('Calculating hydrobid on sub-catchtment {} ...'.format(catchment_id))
-        #inicio = time.time()
+        inicio = time.time()
 
         #obtengo la sub-catchment
         sub_catchments_hydrobid = self.obtain_data('hydrographies/sub-catchments-hydrobid/'+catchment_id+'/geo-json')
@@ -54,7 +54,7 @@ class sub_catchment:
 
         #Ataco en ApiProcess el método Hydrobid
         url = "https://apiprocess.ihcantabria.com/satd-katari-geoprocesses/SATD-KATARI ApiProcess/Hydrobid"
-        #headers = {'Accept':  'application/json'}
+        headers = {'Accept':  'application/json'}
 
         param = {
           "product_id": product_id,
@@ -74,7 +74,7 @@ class sub_catchment:
         #result_pd=pd.DataFrame(result)
 
 
-        #fin = time.time()
+        fin = time.time()
         #print('time  {} s'.format(fin-inicio))
 
         return result
@@ -94,13 +94,15 @@ class sub_catchment:
 
         #obtengo los parámetros de cada "upper-sub-catchment" para usar en hydrobid
         idss=[]
-        #comids=[]
+        comids=[]
+        lats={}
+        longs={}
         results={}
 
         for i in range(1,len(uppers['features'])):
 
             #ids y comids
-            #comids = int(uppers['features'][i]['properties']['comid'])
+            comids = int(uppers['features'][i]['properties']['comid'])
             ids = uppers['features'][i]['properties']['id']
 
             idss.append(ids)
@@ -135,7 +137,7 @@ class sub_catchment:
     
     def calculate_total_volumes(self,results):
         print('Calculate entering volumes ...')
-        #inicio_time = time.time()
+        inicio_time = time.time()
 
         Seassonal_volume = {}
 
@@ -174,7 +176,7 @@ class sub_catchment:
 
             Seassonal_volume[sub_catchment]['annual'] = sum([Seassonal_volume[sub_catchment][seasson] for seasson in ['spring','summer','winter','autumn']])
 
-        #fin = time.time()
+        fin = time.time()
 
         #print('time  {} s'.format(fin-inicio_time))    
         return Seassonal_volume
@@ -183,107 +185,96 @@ class sub_catchment:
     
     #Calculate water demands
 #------------------------------------------------------------------------------------------------------------------------
-    #param = {
-    #          "sub-catchment-hydrobid-id": int,
-    #          "lon-min": float,
-    #          "lat-min": float,
-    #          "lon-max": float
-    #          "lat-max": float
-    #        }
 
-    def obtain_water_demands(self,param,demand_kind):
+    def obtain_water_demands(self,catchment_id,demand_kind):
         print('Calculating {} ...'.format(demand_kind))
-        #inicio = time.time()
+        inicio = time.time()
 
-        subcatcment_id = str(param["sub-catchment-hydrobid-id"])
+        subcatcment_id = str(catchment_id)
         #obtengo las demandas
-
-        #mining-centers usa un formato diferente para el url
+ 
         if demand_kind == 'mining-centers':
+            
+            section ='socioeconomics/mining-centers/geo-json?'+'sub-catchment-hydrobid-id='+subcatcment_id  
 
-            section = 'socioeconomics/mining-centers'+ \
-            '?sub-catchment-hydrobid-id=' + subcatcment_id + \
-            '&lon-min=' + str(param['lon-min']) + \
-            '&lat-min=' + str(param['lat-min']) + \
-            '&lon-max=' + str(param['lon-max']) + \
-            '&lat-max=' + str(param['lat-max'])
-
-            water_demands = self.obtain_data(section,param)
-
-            return water_demands
-        # potable-water-demands, irrigations y ecosystems usan el mismo formato
         else:
+            
+            section ='hydrographies/'+demand_kind+ '/geo-json?'+'sub-catchment-hydrobid-id='+subcatcment_id  
+            
+            
+        water_demands = self.obtain_data(section)
+           
+        water_summer = []
+        water_winter = []
+        water_autumn = []
+        water_spring = []
+        water_annual = []
+        
+        
 
-            water_demands = self.obtain_data('hydrographies/'+demand_kind,param)
+        for i in range(0,len(water_demands['features'])):
 
-            water_summer = []
-            water_winter = []
-            water_autumn = []
-            water_spring = []
-            water_annual = []
+            water_winter.append(water_demands['features'][i]['properties']['winterDemand'])
 
-            for i in range(0,len(water_demands)):
+            water_summer.append(water_demands['features'][i]['properties']['summerDemand'])
 
-                water_winter.append(water_demands[i]['winterDemand'])
+            water_autumn.append(water_demands['features'][i]['properties']['autumnDemand'])
 
-                water_summer.append(water_demands[i]['summerDemand'])
+            water_spring.append(water_demands['features'][i]['properties']['springDemand'])
 
-                water_autumn.append(water_demands[i]['autumnDemand'])
-
-                water_spring.append(water_demands[i]['springDemand'])
-
-                water_annual.append(water_demands[i]['annualDemand'])
+            water_annual.append(water_demands['features'][i]['properties']['annualDemand'])
 
 
-            total_winter = sum(water_winter)
-            total_summer = sum(water_summer)
-            total_autumn = sum(water_autumn)
-            total_spring = sum(water_spring)
+        total_winter = sum(water_winter)
+        total_summer = sum(water_summer)
+        total_autumn = sum(water_autumn)
+        total_spring = sum(water_spring)
 
-            total_annual = sum(water_annual)
+        total_annual = sum(water_annual)
 
-            #fin = time.time()
+        fin = time.time()
 
-            #print('time  {} s'.format(fin-inicio)) 
-            return {'winter' : total_winter, 'summer': total_summer, 'autumn' : total_autumn, 'spring' : total_spring, 'annual': total_annual}
-#------------------------------------------------------------------------------------------------------------------------
+        #print('time  {} s'.format(fin-inicio)) 
+        return {'winter' : total_winter, 'summer': total_summer, 'autumn' : total_autumn, 'spring' : total_spring, 'annual': total_annual}
+
+        #------------------------------------------------------------------------------------------------------------------------
     #Método calculate_resultant_volume:
     
     #Resultado final, volumen entrante - volumen saliente
 #------------------------------------------------------------------------------------------------------------------------
-    def calculate_resultant_volume(self,catchment_id,product_id,start_date,end_date, custom_demands=None):
+    def calculate_resultant_volume(self,product_id,start_date,end_date, custom_demands=None):
         inicio = time.time()
-    
-        #calculo las demandas
-        param = {
-              "sub-catchment-hydrobid-id": int(catchment_id),
-              "lon-min": 0.,
-              "lat-min": 0.,
-              "lon-max": 0.,
-              "lat-max": 0.
-            }
-
+        
+        catchment_id=str(self.catchment_id)
+        
+        #calculo las demandas de aguas      
+        demands = {}
+        
+        
         #Calculo la demanda de Agua Potable
-        potable_water_demands = self.obtain_water_demands(param,'potable-water-demands')
+        potable_water_demands = self.obtain_water_demands(catchment_id,'potable-water-demands')
+        if potable_water_demands:
+            demands['potable-water-demands']=potable_water_demands
 
         #Calculo la demanda de Riego
-        irrigations = self.obtain_water_demands(param,'irrigations')
+        irrigations = self.obtain_water_demands(catchment_id,'irrigations')
+        if irrigations:
+            demands['irrigations']=irrigations
 
         #Calculo la demanda de Act. Industriales
-        mining_centers = self.obtain_water_demands(param,'mining-centers')
+        mining_centers = self.obtain_water_demands(catchment_id,'mining-centers')
+        if mining_centers:
+            demands['mining_centers']=mining_centers        
+
 
         #Calculo la demanda de Ecosistémico
-        ecosystems = self.obtain_water_demands(param,'ecosystems')
-
-        demands = {'potable-water-demands':potable_water_demands,
-                    'irrigations':irrigations,
-                    'mining-centers':mining_centers,
-                    'ecosystems':ecosystems, 
-    }
-
+        ecosystems = self.obtain_water_demands(catchment_id,'ecosystems')
+        if ecosystems:
+            demands['ecosystems']=ecosystems     
+        
         if custom_demands:
-            for demand in custom_demands.keys():
-                for seasson in custom_demands[demand].keys():
+            for demand in custom_demands.keys():   
+                for seasson in custom_demands[demand].keys():    
                     demands[demand][seasson] = custom_demands[demand][seasson]*demands[demand][seasson]
 
         #Obtengo los caudales entrantes con hydrobid
@@ -297,7 +288,8 @@ class sub_catchment:
         total_volumes = {}
         total_demand = {}
         final_result = {}
-
+        
+       
         for seasson in seassons:
             #Volumen entrante total
             total_volumes[seasson] = 0
@@ -305,8 +297,9 @@ class sub_catchment:
                 total_volumes[seasson] += total_upper_volumes[sub_catchment][seasson]
 
             #demanda total
-            total_demand[seasson] = demands['potable-water-demands'][seasson]+demands['ecosystems'][seasson]+demands['irrigations'][seasson]
-
+            
+            total_demand[seasson] = sum([demands[demand_kind][seasson] for demand_kind in demands.keys()])
+    
             final_result[seasson] = total_volumes[seasson]-total_demand[seasson]
         
         #calculo la navegación
@@ -322,7 +315,3 @@ class sub_catchment:
         
         
         return json.dumps(output_results)
-    
-
-if __name__ == "__main___":
-    sub_catchment
