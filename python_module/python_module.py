@@ -108,7 +108,12 @@ class sub_catchment:
             idss.append(ids)
 
             #Ataco en ApiProcess el método Hydrobid para obtener el caudal m3/s de cada una de las cuencas en un período de tiempo.
-            results[str(ids)]=self.hydrobid(str(ids),product_id,start_date,end_date)
+            try:
+                results[str(ids)]=self.hydrobid(str(ids),product_id,start_date,end_date)
+            except KeyError:
+                print('Key error: The product id is 372 and the dates format must be yyy-mm-dd')
+                break
+                
 
         #plot caudales    
         if plot:
@@ -201,8 +206,9 @@ class sub_catchment:
             
             section ='hydrographies/'+demand_kind+ '/geo-json?'+'sub-catchment-hydrobid-id='+subcatcment_id  
             
-            
+          
         water_demands = self.obtain_data(section)
+
            
         water_summer = []
         water_winter = []
@@ -252,7 +258,11 @@ class sub_catchment:
         
         
         #Calculo la demanda de Agua Potable
-        potable_water_demands = self.obtain_water_demands(catchment_id,'potable-water-demands')
+        try:
+            potable_water_demands = self.obtain_water_demands(catchment_id,'potable-water-demands')
+        except KeyError:
+            print('Key error: The sub-catchment id is wrong')
+            
         if potable_water_demands:
             demands['potable-water-demands']=potable_water_demands
 

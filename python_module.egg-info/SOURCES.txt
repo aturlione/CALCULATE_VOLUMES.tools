@@ -4,6 +4,7 @@ setup.py
 python_module/__init__.py
 python_module/api.py
 python_module/python_module.py
+python_module/test.py
 python_module.egg-info/PKG-INFO
 python_module.egg-info/SOURCES.txt
 python_module.egg-info/dependency_links.txt
