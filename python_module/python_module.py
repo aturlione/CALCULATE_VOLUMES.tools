@@ -108,12 +108,7 @@ class sub_catchment:
             idss.append(ids)
 
             #Ataco en ApiProcess el método Hydrobid para obtener el caudal m3/s de cada una de las cuencas en un período de tiempo.
-            try:
-                results[str(ids)]=self.hydrobid(str(ids),product_id,start_date,end_date)
-            except KeyError:
-                print('Key error: The product id is 372 and the dates format must be yyy-mm-dd')
-                break
-                
+            results[str(ids)]=self.hydrobid(str(ids),product_id,start_date,end_date)
 
         #plot caudales    
         if plot:
@@ -206,9 +201,8 @@ class sub_catchment:
             
             section ='hydrographies/'+demand_kind+ '/geo-json?'+'sub-catchment-hydrobid-id='+subcatcment_id  
             
-          
+            
         water_demands = self.obtain_data(section)
-
            
         water_summer = []
         water_winter = []
@@ -242,11 +236,48 @@ class sub_catchment:
 
         #print('time  {} s'.format(fin-inicio)) 
         return {'winter' : total_winter, 'summer': total_summer, 'autumn' : total_autumn, 'spring' : total_spring, 'annual': total_annual}
+    
+#------------------------------------------------------------------------------------------------------------------------
+    #Método available_water:    
+    #Resultado final, volumen entrante - demanda ecosistémica
+#------------------------------------------------------------------------------------------------------------------------
+        
+    def available_water(self,product_id,start_date,end_date):
+        
+        catchment_id=str(self.catchment_id)
+        
+        #Calculo la demanda Ecosistémica
+        ecosystems = self.obtain_water_demands(catchment_id,'ecosystems')
+   
+        
+       
+        #Obtengo los caudales entrantes con hydrobid
+        results=self.calculate_OutFlow(catchment_id,product_id,start_date,end_date)
 
-        #------------------------------------------------------------------------------------------------------------------------
+        #Calculo los volumenes totales entrantes por upper-sub-catchment y estación
+        total_upper_volumes = self.calculate_total_volumes(results)  
+        
+        seassons = ['spring','summer','winter','autumn','annual']
+
+        total_volumes = {}
+        final_result = {}
+        
+       
+        for seasson in seassons:
+            #Volumen entrante total
+            total_volumes[seasson] = 0
+            for sub_catchment in total_upper_volumes.keys():
+                total_volumes[seasson] += total_upper_volumes[sub_catchment][seasson]
+
+            final_result[seasson] = total_volumes[seasson]-ecosystems[seasson]
+
+        return {'total_upper_volumes': total_upper_volumes ,'final_result': final_result}
+    
+    
+#------------------------------------------------------------------------------------------------------------------------
     #Método calculate_resultant_volume:
     
-    #Resultado final, volumen entrante - volumen saliente
+    #Resultado final, Agua disponible - demanda total
 #------------------------------------------------------------------------------------------------------------------------
     def calculate_resultant_volume(self,product_id,start_date,end_date, custom_demands=None):
         inicio = time.time()
@@ -258,11 +289,7 @@ class sub_catchment:
         
         
         #Calculo la demanda de Agua Potable
-        try:
-            potable_water_demands = self.obtain_water_demands(catchment_id,'potable-water-demands')
-        except KeyError:
-            print('Key error: The sub-catchment id is wrong')
-            
+        potable_water_demands = self.obtain_water_demands(catchment_id,'potable-water-demands')
         if potable_water_demands:
             demands['potable-water-demands']=potable_water_demands
 
@@ -276,38 +303,25 @@ class sub_catchment:
         if mining_centers:
             demands['mining_centers']=mining_centers        
 
-
-        #Calculo la demanda de Ecosistémico
-        ecosystems = self.obtain_water_demands(catchment_id,'ecosystems')
-        if ecosystems:
-            demands['ecosystems']=ecosystems     
         
         if custom_demands:
             for demand in custom_demands.keys():   
                 for seasson in custom_demands[demand].keys():    
                     demands[demand][seasson] = custom_demands[demand][seasson]*demands[demand][seasson]
 
-        #Obtengo los caudales entrantes con hydrobid
-        results=self.calculate_OutFlow(catchment_id,product_id,start_date,end_date)
-
-        #Calculo los volumenes totales entrantes por upper-sub-catchment y estación
-        total_upper_volumes = self.calculate_total_volumes(results)  
-        
+        #calculo el agua disponible: resultado de hydrobid - demanda ecosistémica
+        available_water = self.available_water(product_id,start_date,end_date)
+        total_volumes = available_water['final_result']
+        total_upper_volumes = available_water['total_upper_volumes']
         seassons = ['spring','summer','winter','autumn','annual']
 
-        total_volumes = {}
         total_demand = {}
         final_result = {}
         
        
         for seasson in seassons:
-            #Volumen entrante total
-            total_volumes[seasson] = 0
-            for sub_catchment in total_upper_volumes.keys():
-                total_volumes[seasson] += total_upper_volumes[sub_catchment][seasson]
 
             #demanda total
-            
             total_demand[seasson] = sum([demands[demand_kind][seasson] for demand_kind in demands.keys()])
     
             final_result[seasson] = total_volumes[seasson]-total_demand[seasson]
